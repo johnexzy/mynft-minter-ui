@@ -42,7 +42,7 @@ export default defineComponent({
     const OPENSEA_LINK = "";
     const TOTAL_MINT_COUNT = 50;
     const CONTRACT_ADDRESS = "0xBAa7c673CebC0e76380ec647230E5ABeB70f6011";
-    const current_mint_count = ref(null)
+    const current_mint_count = ref(0)
     const current_account = ref(null);
 
     /**
@@ -62,7 +62,8 @@ export default defineComponent({
           );
 
           // console.log("Going to pop wallet now to pay gas...");
-          current_mint_count.value = await connectedContract.getTotalMintCount();
+          const count = await connectedContract.getTotalMintCount();
+          current_mint_count.value = parseInt(count) + 1
 
         } else {
           console.log("Ethereum object doesn't exist!");
@@ -71,6 +72,9 @@ export default defineComponent({
         console.log(error);
       }
     };
+
+    getCurrentMintCount();
+
     const checkIfWalletIsConnected = async () => {
       /*
        * First make sure we have access to window.ethereum
@@ -192,7 +196,7 @@ export default defineComponent({
           // If you're familiar with webhooks, it's very similar to that!
           connectedContract.on("NewEpicNFTMinted", (from, tokenId) => {
             console.log(from, tokenId.toNumber());
-            current_mint_count.value = tokenId.toNumber()
+            current_mint_count.value = parseInt(tokenId.toNumber()) + 1
             console.log(current_mint_count.value)
             alert(
               `Hey there! We've minted your NFT and sent it to your wallet. It may be blank right now. It can take a max of 10 min to show up on OpenSea. Here's the link: https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`
