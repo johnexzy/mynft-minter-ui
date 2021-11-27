@@ -13,13 +13,22 @@
         </button>
         <button
           @click="askContractToMintNft"
-          v-else
+          v-else-if="current_account && !minting"
           class="cta-button connect-wallet-button"
         >
           Mint NFT
         </button>
+        <button
+          v-show="minting"
+          class="cta-button connect-wallet-button"
+        >
+          Minting...
+        </button>
       </div>
       <code>{{current_mint_count}}/50 minted so far</code>
+      <div class=" text-indigo-1" v-if="msg">
+        {{msg}}
+      </div>
       <div class="footer-container">
         <img alt="Twitter Logo" class="twitter-logo" src="../assets/twitter-logo.svg" />
         <a class="footer-text" :href="TWITTER_LINK" target="_blank" rel="noreferrer"
@@ -44,7 +53,8 @@ export default defineComponent({
     const CONTRACT_ADDRESS = "0xBAa7c673CebC0e76380ec647230E5ABeB70f6011";
     const current_mint_count = ref(0)
     const current_account = ref(null);
-
+    const minting = ref(false)
+    const msg = ref('');
     /**
      * Get the current mint Count
      */
@@ -63,7 +73,7 @@ export default defineComponent({
 
           // console.log("Going to pop wallet now to pay gas...");
           const count = await connectedContract.getTotalMintCount();
-          current_mint_count.value = parseInt(count) + 1
+          current_mint_count.value = parseInt(count)
 
         } else {
           console.log("Ethereum object doesn't exist!");
@@ -160,10 +170,11 @@ export default defineComponent({
 
           console.log("Going to pop wallet now to pay gas...");
           let nftTxn = await connectedContract.makeAnNFT();
-
+          minting.value = true
           console.log("Mining...please wait.");
           await nftTxn.wait();
-
+          getCurrentMintCount();
+          minting.value = false
           console.log(
             `Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`
           );
@@ -196,11 +207,10 @@ export default defineComponent({
           // If you're familiar with webhooks, it's very similar to that!
           connectedContract.on("NewEpicNFTMinted", (from, tokenId) => {
             console.log(from, tokenId.toNumber());
+            minting.value = false
             current_mint_count.value = parseInt(tokenId.toNumber()) + 1
-            console.log(current_mint_count.value)
-            alert(
-              `Hey there! We've minted your NFT and sent it to your wallet. It may be blank right now. It can take a max of 10 min to show up on OpenSea. Here's the link: https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`
-            );
+            // console.log(current_mint_count.value)
+            msg.value = `${from} minted NFT number: ${tokenId}. view on https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`
           });
 
           console.log("Setup event listener!");
@@ -217,9 +227,11 @@ export default defineComponent({
       OPENSEA_LINK,
       TOTAL_MINT_COUNT,
       current_account,
+      minting,
       connectWallet,
       askContractToMintNft,
-      current_mint_count
+      current_mint_count,
+      msg
     };
   },
 });
