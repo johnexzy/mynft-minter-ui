@@ -3,7 +3,9 @@
     <div class="container">
       <div class="header-container">
         <p class="header gradient-text">My NFT Collection</p>
-        <p class="sub-text">Each unique. Each beautiful. Discover your NFT today.</p>
+        <p class="sub-text">
+          Each unique. Each beautiful. Discover your NFT today.
+        </p>
         <button
           v-if="!current_account"
           @click="connectWallet"
@@ -18,20 +20,25 @@
         >
           Mint NFT
         </button>
-        <button
-          v-show="minting"
-          class="cta-button connect-wallet-button"
-        >
+        <button v-show="minting" class="cta-button connect-wallet-button">
           Minting...
         </button>
       </div>
-      <code>{{current_mint_count}}/50 minted so far</code>
-      <div class=" text-indigo-1" v-if="msg">
-        {{msg}}
+      <code>{{ current_mint_count }}/50 minted so far</code>
+      <div class="text-indigo-1" v-if="msg">
+        {{ msg }}
       </div>
       <div class="footer-container">
-        <img alt="Twitter Logo" class="twitter-logo" src="../assets/twitter-logo.svg" />
-        <a class="footer-text" :href="TWITTER_LINK" target="_blank" rel="noreferrer"
+        <img
+          alt="Twitter Logo"
+          class="twitter-logo"
+          src="../assets/twitter-logo.svg"
+        />
+        <a
+          class="footer-text"
+          :href="TWITTER_LINK"
+          target="_blank"
+          rel="noreferrer"
           >built by @{{ TWITTER_HANDLE }}</a
         >
       </div>
@@ -50,14 +57,26 @@ export default defineComponent({
     const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
     const OPENSEA_LINK = "";
     const TOTAL_MINT_COUNT = 50;
-    const CONTRACT_ADDRESS = "0xBAa7c673CebC0e76380ec647230E5ABeB70f6011";
-    const current_mint_count = ref(0)
+    const CONTRACT_ADDRESS = "0x5F41c6b7505b158199Ac66c8A88b8A56Ef16E310";
+    const current_mint_count = ref(0);
     const current_account = ref(null);
-    const minting = ref(false)
-    const msg = ref('');
+    const minting = ref(false);
+    const msg = ref("");
     /**
      * Get the current mint Count
      */
+
+    const checkChainId = async () => {
+      let chainId = await ethereum.request({ method: "eth_chainId" });
+      console.log("Connected to chain " + chainId);
+
+      // String, hex code of the chainId of the Rinkebey test network
+      const rinkebyChainId = "0x4";
+      if (chainId !== rinkebyChainId) {
+        alert("Please switch to Rinkeby Test Network to Mint NFT!");
+      }
+    };
+
     const getCurrentMintCount = async () => {
       try {
         const { ethereum } = window;
@@ -73,8 +92,7 @@ export default defineComponent({
 
           // console.log("Going to pop wallet now to pay gas...");
           const count = await connectedContract.getTotalMintCount();
-          current_mint_count.value = parseInt(count)
-
+          current_mint_count.value = parseInt(count);
         } else {
           console.log("Ethereum object doesn't exist!");
         }
@@ -96,7 +114,7 @@ export default defineComponent({
         return;
       } else {
         console.log("We have the ethereum object", ethereum);
-
+        checkChainId()
       }
 
       /*
@@ -125,7 +143,6 @@ export default defineComponent({
     // Call functions on mount
     checkIfWalletIsConnected();
     getCurrentMintCount();
-
 
     const connectWallet = async () => {
       try {
@@ -170,11 +187,11 @@ export default defineComponent({
 
           console.log("Going to pop wallet now to pay gas...");
           let nftTxn = await connectedContract.makeAnNFT();
-          minting.value = true
+          minting.value = true;
           console.log("Mining...please wait.");
           await nftTxn.wait();
           getCurrentMintCount();
-          minting.value = false
+          minting.value = false;
           console.log(
             `Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`
           );
@@ -185,7 +202,6 @@ export default defineComponent({
         console.log(error);
       }
     };
-
 
     const setupEventListener = async () => {
       // Most of this looks the same as our function askContractToMintNft
@@ -207,10 +223,10 @@ export default defineComponent({
           // If you're familiar with webhooks, it's very similar to that!
           connectedContract.on("NewEpicNFTMinted", (from, tokenId) => {
             console.log(from, tokenId.toNumber());
-            minting.value = false
-            current_mint_count.value = parseInt(tokenId.toNumber()) + 1
+            minting.value = false;
+            current_mint_count.value = parseInt(tokenId.toNumber()) + 1;
             // console.log(current_mint_count.value)
-            msg.value = `${from} minted NFT number: ${tokenId}. view on https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`
+            msg.value = `${from} minted NFT number: ${tokenId}. view on https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`;
           });
 
           console.log("Setup event listener!");
@@ -231,7 +247,7 @@ export default defineComponent({
       connectWallet,
       askContractToMintNft,
       current_mint_count,
-      msg
+      msg,
     };
   },
 });
