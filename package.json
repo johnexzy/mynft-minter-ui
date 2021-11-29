@@ -19,6 +19,7 @@
     "connect-history-api-fallback": "^1.6.0",
     "core-js": "^3.6.5",
     "cross-env": "^7.0.3",
+    "dotenv": "^10.0.0",
     "ethers": "^5.5.1",
     "express": "^4.17.1",
     "quasar": "^2.0.0",
@@ -28,7 +29,6 @@
   "devDependencies": {
     "@babel/eslint-parser": "^7.13.14",
     "@quasar/app": "^3.0.0",
-    "@quasar/quasar-app-extension-qenv": "^1.1.0",
     "eslint": "^7.14.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-vue": "^7.0.0",

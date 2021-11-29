@@ -10,7 +10,7 @@ import axios from "axios";
 axios.defaults.baseURL = "https://api.pinata.cloud/";
 axios.defaults.headers.common[
   "Authorization"
-] = `Bearer ${process.env.jwt}`;
+] = `Bearer ${process.env.JWT}`;
 // axios.defaults.headers.common['Authorization'] = `Bearer ${process.env.jwt}`
 const api = axios.create({ baseURL: "https://api.example.com" });
 
