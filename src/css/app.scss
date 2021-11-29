@@ -13,7 +13,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
+.code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
   color: goldenrod;
@@ -67,7 +67,14 @@ code {
   font-weight: bold;
   color: white;
 }
-
+.q-form{
+  background: linear-gradient(rgb(212, 208, 212), rgb(173, 145, 145));
+  border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -o-border-radius: 5px;
+}
 .connect-wallet-button {
   background: -webkit-linear-gradient(left, #60c657, #35aee2);
   background-size: 200% 200%;
