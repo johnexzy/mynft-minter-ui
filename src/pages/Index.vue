@@ -2,29 +2,146 @@
   <q-page class="flex flex-center App">
     <div class="container">
       <div class="header-container">
-        <p class="header gradient-text">My NFT Collection</p>
-        <p class="sub-text">
+        <p class="header gradient-text">Mint your Art to NFT</p>
+        <!-- <p class="sub-text">
           Each unique. Each beautiful. Discover your NFT today.
-        </p>
-        <button
-          v-if="!current_account"
-          @click="connectWallet"
-          class="cta-button connect-wallet-button"
-        >
-          Connect to Wallet
-        </button>
-        <button
-          @click="askContractToMintNft"
-          v-else-if="current_account && !minting"
-          class="cta-button connect-wallet-button"
-        >
-          Mint NFT
-        </button>
-        <button v-show="minting" class="cta-button connect-wallet-button">
-          Minting...
-        </button>
+        </p> -->
+        <q-form @submit="onSubmit" class="q-gutter-md q-py-lg q-my-lg">
+          <div v-if="current_account" class="row justify-center">
+            <div class="col-12 col-md-5 col-lg-5">
+              <div class="row q-col-gutter-sm">
+                <div class="col-12 col-md-10 col-lg-10">
+                  <div class="text-subtitle1 text-primary text-left">
+                    NFT Name
+                  </div>
+                  <div class="text-caption text-grey-7  text-left q-mb-md">
+                    Provide a name for this NFT
+                  </div>
+                  <q-input
+                    class="custom-form-input"
+                    v-model="IPFS_JSON.name"
+                    ref="name"
+                    dense
+                    filled
+                    placeholder="Name or title"
+                    hint
+                    lazy-rules
+                    :rules="[$rules.required('Please enter name for nft')]"
+                  >
+                  </q-input>
+                </div>
+              </div>
+              <div class="row q-col-gutter-sm">
+                <div class="col-12 col-md-12 col-lg-12">
+                  <div class="text-subtitle1 text-primary text-left">
+                    NFT Description
+                  </div>
+                  <div class="text-caption text-left text-grey-7 q-mb-md">
+                    Share more information about this nft
+                  </div>
+                  <q-input
+                    class="custom-form-input"
+                    v-model="IPFS_JSON.description"
+                    ref="description"
+                    type="textarea"
+                    filled
+                    dense
+                    hint
+                    lazy-rules
+                    :rules="[
+                      $rules.required('Description is required'),
+                      $rules.maxLength(
+                        200,
+                        'Description should not be larger than 200 chars'
+                      ),
+                    ]"
+                  >
+                  </q-input>
+                </div>
+              </div>
+              <div class="row q-col-gutter-sm">
+                <div class="col-12 col-md-12 col-lg-12">
+                  <div class="text-subtitle1 text-primary text-left">
+                    Select Image
+                  </div>
+                  <div class="text-caption text-grey-7 text-left q-mb-md">
+                    PNG, JPG, or GIF up to 1MB
+                  </div>
+                  <!-- <q-field ref="image" class="justify-center" dense borderless hint> -->
+                  <q-file
+                    ref="files"
+                    style="display: none"
+                    v-model="file"
+                    name="file"
+                    accept="image/png, image/jpeg, image/gif"
+                    max-file-size="1000000"
+                  />
+                  <q-btn
+                    v-if="!file"
+                    style="width: 150px !important; height: 150px"
+                    @click="$refs.files.pickFiles()"
+                    text-color="grey-9"
+                    color="grey-3"
+                    unelevated
+                    icon="add"
+                  />
+                  <q-chip
+                    v-else
+                    class=""
+                    icon="ion-image"
+                    removable
+                    @remove="clearSelectedImage"
+                    icon-remove="delete"
+                    :label="file.name"
+                  />
+                  <!-- </q-field> -->
+                </div>
+              </div>
+              <div class="row q-col-gutter-sm q-my-lg justify-center">
+                <q-btn
+                  v-if="!current_account"
+                  @click="connectWallet"
+                  no-wrap
+                  flat
+                  class="cta-button connect-wallet-button"
+                >
+                  Connect to Wallet
+                </q-btn>
+                <q-btn
+                  type="submit"
+                  no-wrap
+                  flat
+                  v-else-if="current_account && !minting"
+                  class="cta-button connect-wallet-button"
+                >
+                  {{ labelBtn }}
+                </q-btn>
+                <q-btn
+                  v-show="minting"
+                  no-wrap
+                  flat
+                  :loading="minting"
+                  class="cta-button connect-wallet-button"
+                >
+                  Minting...
+                </q-btn>
+              </div>
+            </div>
+          </div>
+          <q-btn
+            v-else
+            @click="connectWallet"
+            no-wrap
+            flat
+            class="cta-button connect-wallet-button"
+          >
+            Connect to Wallet
+          </q-btn>
+        </q-form>
       </div>
-      <code>{{ current_mint_count }}/50 minted so far</code>
+      <div class="code">{{ current_mint_count }}/50 minted so far</div>
+
+      <div></div>
       <div class="text-indigo-1" v-if="msg">
         {{ msg }}
       </div>
@@ -49,23 +166,22 @@
 <script>
 import { defineComponent, ref } from "vue";
 import { ethers } from "ethers";
+import axios from "axios";
 import ABI from "../artifacts/contracts/MyNFT.sol/MyNFT.json";
 export default defineComponent({
   name: "PageIndex",
   setup() {
     const TWITTER_HANDLE = "johnoba17";
     const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
-    const OPENSEA_LINK = "";
     const TOTAL_MINT_COUNT = 50;
-    const CONTRACT_ADDRESS = "0x5F41c6b7505b158199Ac66c8A88b8A56Ef16E310";
+    const CONTRACT_ADDRESS = "0x045388AD8078615958F784455F5C71cEc049b48B";
     const current_mint_count = ref(0);
     const current_account = ref(null);
     const minting = ref(false);
     const msg = ref("");
-    /**
-     * Get the current mint Count
-     */
-
+    const labelBtn = ref("Mint NFT");
+    // const $api = axios;
+    const IPFS_CID = ref(null);
     const checkChainId = async () => {
       let chainId = await ethereum.request({ method: "eth_chainId" });
       console.log("Connected to chain " + chainId);
@@ -77,6 +193,9 @@ export default defineComponent({
       }
     };
 
+    /**
+     * Get the current mint Count
+     */
     const getCurrentMintCount = async () => {
       try {
         const { ethereum } = window;
@@ -101,7 +220,7 @@ export default defineComponent({
       }
     };
 
-    getCurrentMintCount();
+    // getCurrentMintCount();
 
     const checkIfWalletIsConnected = async () => {
       /*
@@ -114,7 +233,7 @@ export default defineComponent({
         return;
       } else {
         console.log("We have the ethereum object", ethereum);
-        checkChainId()
+        checkChainId();
       }
 
       /*
@@ -128,6 +247,7 @@ export default defineComponent({
       if (accounts.length !== 0) {
         const account = accounts[0];
 
+        getCurrentMintCount();
         setCurrentAccount(account);
 
         setupEventListener();
@@ -165,13 +285,16 @@ export default defineComponent({
          */
         console.log("Connected", accounts[0]);
         setCurrentAccount(accounts[0]);
-
+        getCurrentMintCount();
         setupEventListener();
       } catch (error) {
         console.log(error);
       }
     };
 
+    /**
+     * Minting function
+     */
     const askContractToMintNft = async () => {
       try {
         const { ethereum } = window;
@@ -186,8 +309,9 @@ export default defineComponent({
           );
 
           console.log("Going to pop wallet now to pay gas...");
-          let nftTxn = await connectedContract.makeAnNFT();
+          let nftTxn = await connectedContract.mintNFT(IPFS_CID.value);
           minting.value = true;
+          labelBtn.value = "Mint NFT";
           console.log("Mining...please wait.");
           await nftTxn.wait();
           getCurrentMintCount();
@@ -203,6 +327,9 @@ export default defineComponent({
       }
     };
 
+    /**
+     * Events is emitted when transaction is completed
+     */
     const setupEventListener = async () => {
       // Most of this looks the same as our function askContractToMintNft
       try {
@@ -237,17 +364,97 @@ export default defineComponent({
         console.log(error);
       }
     };
+
+    /**
+     * Post Images to IPFS
+     */
+
+    const IPFSdata = ref(null);
+    const IPFS_JSON = ref({
+      description: "",
+      image: "ipfs://YOUR_ASSET_CID",
+      name: "",
+    });
+    const UploadJson = async () => {
+      try {
+        const IPFS = {
+          name: IPFS_JSON.value.name,
+          image: IPFS_JSON.value.image,
+          description: IPFS_JSON.value.description,
+        };
+        await axios
+          .post(
+            "pinning/pinJSONToIPFS",
+            IPFS,
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          )
+          .then((res) => {
+            console.log(IPFS_JSON);
+            console.log("hash", res.data);
+            // IPFS_JSON.value.image = `ipfs://${res.data.IpfsHash}`;
+            IPFS_CID.value = `ipfs://${res.data.IpfsHash}`;
+            askContractToMintNft();
+          });
+      } catch (error) {
+        console.log("error", error.responds.data);
+      }
+    };
+
+    const onSubmit = async (evt) => {
+      const formData = new FormData(evt.target);
+      // const data = [];
+      const pinataOptions = JSON.stringify({
+        cidVersion: 0,
+      });
+      // const pinataMetadata = JSON.stringify({
+      //   name: "Oba John Test",
+      //   keyvalues: {
+      //     company: "John Inc",
+      //   },
+      // });
+      // formData.append("pinataMetadata", pinataMetadata);
+      formData.append("pinataOptions", pinataOptions);
+      try {
+        labelBtn.value = "Uploading...";
+        await axios
+          .post("pinning/pinFileToIPFS", formData, {
+            // maxBodyLength: "Infinity", //this is needed to prevent axios from erroring out with large files
+            headers: {
+              "Content-Type": `multipart/form-data;`,
+            },
+          })
+          .then((res) => {
+            IPFSdata.value = res.data;
+            IPFS_JSON.value.image = `ipfs://${res.data.IpfsHash}`;
+
+            UploadJson();
+          });
+      } catch (error) {
+        console.log("error", error.responds.data);
+      }
+    };
+    const file = ref(null);
     return {
       TWITTER_HANDLE,
       TWITTER_LINK,
-      OPENSEA_LINK,
       TOTAL_MINT_COUNT,
+      IPFS_JSON,
       current_account,
       minting,
       connectWallet,
       askContractToMintNft,
       current_mint_count,
+      file,
+      clearSelectedImage() {
+        file.value = null;
+      },
+      onSubmit,
       msg,
+      labelBtn,
     };
   },
 });

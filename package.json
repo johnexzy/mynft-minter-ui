@@ -8,16 +8,18 @@
   "scripts": {
     "lint": "eslint --ext .js,.vue ./",
     "test": "echo \"No test specified\" && exit 0",
-    "dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider quasar dev",
+    "dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider QENV=development quasar dev",
     "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider quasar build",
     "start": "node server.js"
   },
   "dependencies": {
+    "@pinata/sdk": "^1.1.23",
     "@quasar/extras": "^1.0.0",
     "axios": "^0.21.1",
     "connect-history-api-fallback": "^1.6.0",
     "core-js": "^3.6.5",
     "cross-env": "^7.0.3",
+    "dotenv": "^10.0.0",
     "ethers": "^5.5.1",
     "express": "^4.17.1",
     "quasar": "^2.0.0",
@@ -30,7 +32,8 @@
     "eslint": "^7.14.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-vue": "^7.0.0",
-    "eslint-webpack-plugin": "^2.4.0"
+    "eslint-webpack-plugin": "^2.4.0",
+    "quasar-app-extension-vuelidate-rules": "^0.4.0"
   },
   "browserslist": [
     "last 10 Chrome versions",
